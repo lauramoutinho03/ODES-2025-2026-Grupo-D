@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>ODES – Definição do Problema</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="/upload.js"></script>
+    <!-- Tabulator CSS -->
+    <link href="https://unpkg.com/tabulator-tables@5.5.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <!-- Tabulator JS -->
+    <script src="https://unpkg.com/tabulator-tables@5.5.1/dist/js/tabulator.min.js"></script>
+
+</head>
+<body>
+<h1>Plataforma ODES - Upload e Definição de Problema</h1>
+
+<section>
+    <h2>Carregar ficheiros CSV</h2>
+    <div class="flex gap-4">
+        <div>
+            <label>CSV das Salas:</label><br>
+            <input type="file" id="salas" accept=".csv">
+        </div>
+        <div>
+            <label>CSV dos Horários:</label><br>
+            <input type="file" id="horarios" accept=".csv">
+        </div>
+        <button onclick="uploadTwoFiles()">Carregar</button>
+    </div>
+    <pre id="debug"></pre>
+</section>
+
+<section>
+    <h2>Dados das Salas</h2>
+    <div style="overflow-x: auto;">
+        <div id="tabSalas"></div>
+    </div>
+</section>
+
+<section>
+    <h2>Dados dos Horários</h2>
+    <div style="overflow-x: auto;">
+        <div id="tabHor"></div>
+    </div>
+</section>
+
+<section>
+    <h2>Variáveis de decisão</h2>
+    <div id="decisionVars" class="space-y-3">
+        <div>
+            <input type="text" placeholder="Label">
+            <select>
+                <option>discreto</option>
+                <option>contínuo</option>
+            </select>
+            <input type="text" placeholder="Gama" style="width: 350px;">
+        </div>
+    </div>
+    <button onclick="addDecisionVar()">+ Adicionar variável</button>
+</section>
+
+
+<section>
+    <h2>Funções Objetivo</h2>
+    <div id="objectives" class="space-y-3">
+        <div>
+            <select>
+                <option>Minimizar</option>
+                <option>Maximizar</option>
+            </select>
+            <input type="text" placeholder="Expressão (ex: abs(lotacao - inscritos))" style="width: 500px;">
+        </div>
+    </div>
+    <button onclick="addObjective()">+ Adicionar objetivo</button>
+</section>
+
+<section>
+    <h2>Restrições</h2>
+    <div id="constraints" class="space-y-3">
+        <div>
+            <input type="text" placeholder="Restrição (ex: lotacao >= inscritos)" style="width: 500px;">
+        </div>
+    </div>
+    <button onclick="addConstraint()">+ Adicionar restrição</button>
+</section>
+
+<section>
+    <h2> Criar Problema </h2>
+    <button onclick="submitProblemDefinition()">Criar</button>
+    <h3>JSON do problema criado</h3>
+    <pre id="jsonOutput" style="background:#f4f4f4; padding:10px; max-height:500px; overflow:auto; border:1px solid #ccc;"></pre>
+</section>
+
+<section>
+    <h2>Resultados da otimização</h2>
+    <button onclick="solveProblem()">Executar Solver</button>
+    <pre id="results"></pre>
+</section>
+
+
+
+
+
+
+</body>
+</html>
