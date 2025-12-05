@@ -52,7 +52,8 @@ function renderTabulator(divId, data, tableInstance, assignFunc) {
         columns: columns,
         layout: "fitData",
         pagination: "local",
-        paginationSize: 13,
+        paginationSize: 10,
+        paginationSizeSelector: [5, 10, 20, 50],
         movableColumns: false,
         resizableRows: false,
         placeholder: "Sem dados",
@@ -113,6 +114,22 @@ function addConstraint() {
     container.appendChild(div);
 }
 
+// Fazer resumo do json para o frontend
+function summarizeProblemJSON(problemJSON) {
+    // Clona o JSON original sem alterar o objeto real
+    const summary = { ...problemJSON };
+
+    // Amostrar até 2 elementos de cada dataset
+    if (summary.dataset?.salas) {
+        summary.dataset.salas = summary.dataset.salas.slice(0, 2);
+    }
+    if (summary.dataset?.horarios) {
+        summary.dataset.horarios = summary.dataset.horarios.slice(0, 2);
+    }
+
+    return summary;
+}
+
 // =============================================
 // 6) Submeter definição do problema ao backend
 // =============================================
@@ -154,7 +171,9 @@ function submitProblemDefinition() {
     };
 
     // Mostrar JSON no HTML
-    document.getElementById("jsonOutput").textContent = JSON.stringify(problemJSON, null, 2);
+    const summarizedJSON = summarizeProblemJSON(problemJSON);
+    document.getElementById("jsonOutput").textContent = JSON.stringify(summarizedJSON, null, 2);
+    //document.getElementById("jsonOutput").textContent = JSON.stringify(problemJSON, null, 2);
 
 
     // Enviar para backend
@@ -173,29 +192,24 @@ function submitProblemDefinition() {
 
 }
 
-/*function solveProblem() {
-    fetch("http://localhost:8080/solve", { method: "POST" })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById("results").textContent =
-                JSON.stringify(data, null, 2);
-        })
-        .catch(err => alert("Erro: " + err));
-}*/
-
 function solveProblem() {
+    // Mostrar o spinner
+    document.getElementById("loading").style.display = "block";
+
     fetch("http://localhost:8080/solve", { method: "POST" })
         .then(r => r.json())
         .then(data => {
+            // Esconder o spinner quando terminar
+            document.getElementById("loading").style.display = "none";
+
             const resultsDiv = document.getElementById("results");
-            resultsDiv.innerHTML = ""; // Limpar resultados antigos
+            resultsDiv.innerHTML = "";
 
             if (data.error) {
                 resultsDiv.textContent = data.error;
                 return;
             }
 
-            // Obter atribuições
             const assignments = data.Atribuições || data.assignments;
 
             if (!assignments || assignments.length === 0) {
@@ -203,12 +217,10 @@ function solveProblem() {
                 return;
             }
 
-            // Criar div para tabela
             const tableDiv = document.createElement("div");
-            tableDiv.id = "assignmentsTable"; // id para o Tabulator
+            tableDiv.id = "assignmentsTable";
             resultsDiv.appendChild(tableDiv);
 
-            // Criar tabela Tabulator com paginação
             new Tabulator("#assignmentsTable", {
                 data: assignments,
                 layout: "fitColumns",
@@ -217,19 +229,21 @@ function solveProblem() {
                     { title: "Sala", field: "sala" }
                 ],
                 placeholder: "Sem atribuições",
-                pagination: "local",       // ativa a paginação local
-                paginationSize: 10,        // 10 linhas por página
-                paginationSizeSelector: [5, 10, 20, 50], // opcional: dropdown para mudar tamanho
-                movableColumns: true,
+                pagination: "local",
+                paginationSize: 10,
+                paginationSizeSelector: [5, 10, 20, 50],
+                movableColumns: false,
                 resizableRows: false
             });
 
-            // Mostrar número de conflitos abaixo da tabela
             const conflictsP = document.createElement("p");
             conflictsP.innerHTML = `<strong>Número de conflitos:</strong> ${data.objective || data.conflitos || 0}`;
             resultsDiv.appendChild(conflictsP);
         })
-        .catch(err => alert("Erro: " + err));
+        .catch(err => {
+            document.getElementById("loading").style.display = "none";
+            alert("Erro: " + err);
+        });
 }
 
 

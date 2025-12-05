@@ -51,3 +51,18 @@ input, select {
 #tabSalas, #tabHor {
     /*margin-top: 10px;*/
 }
+
+.spinner {
+    margin: 0 auto;
+    border: 6px solid #ddd;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

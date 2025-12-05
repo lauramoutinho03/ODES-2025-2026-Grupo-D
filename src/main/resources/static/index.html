@@ -88,7 +88,7 @@
 <section>
     <h2> Criar Problema </h2>
     <button onclick="submitProblemDefinition()">Criar</button>
-    <h3>JSON do problema criado</h3>
+    <h3>JSON resumido do problema criado</h3>
     <pre id="jsonOutput" style="background:#f4f4f4; padding:10px; max-height:500px; overflow:auto; border:1px solid #ccc;"></pre>
 </section>
 
@@ -96,11 +96,13 @@
     <h2>Resultados da otimização</h2>
     <button onclick="solveProblem()">Executar Solver</button>
     <pre id="results"></pre>
+
+    <div id="loading" style="display:none; text-align:center; margin-top:20px;">
+        <div class="spinner"></div>
+        <p>A processar solução... Por favor, aguarde.</p>
+    </div>
+
 </section>
-
-
-
-
 
 
 </body>

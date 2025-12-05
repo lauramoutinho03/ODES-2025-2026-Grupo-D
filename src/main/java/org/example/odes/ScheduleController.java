@@ -1,6 +1,17 @@
 package org.example.odes;
 
 import org.springframework.web.bind.annotation.*;
+import org.uma.jmetal.algorithm.examples.AlgorithmRunner;
+import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAII;
+import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
+import org.uma.jmetal.operator.crossover.CrossoverOperator;
+import org.uma.jmetal.operator.crossover.impl.IntegerSBXCrossover;
+import org.uma.jmetal.operator.mutation.MutationOperator;
+import org.uma.jmetal.operator.mutation.impl.IntegerPolynomialMutation;
+import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
+import org.uma.jmetal.solution.integersolution.IntegerSolution;
+import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
+
 import java.util.*;
 
 @RestController
@@ -20,8 +31,14 @@ public class ScheduleController {
         List<Map<String, String>> horarios =
                 (List<Map<String, String>>) dataset.get("horarios");
 
+        List<Map<String, String>> objectives =
+                (List<Map<String, String>>) json.get("objectives");
+
+        List<String> constraints =
+                (List<String>) json.get("constraints");
+
         // Criar o ScheduleProblem com o mínimo que ele precisa: aulas + salas
-        lastProblem = new ScheduleProblem(horarios, salas);
+        lastProblem = new ScheduleProblem(horarios, salas, objectives, constraints);
 
         return Map.of(
                 "message", "Problema criado com sucesso!",
@@ -31,42 +48,6 @@ public class ScheduleController {
     }
 
 
-    /*@PostMapping("/solve")
-    public Map<String, Object> solve() {
-        List<Map<String, String>> assignments = new ArrayList<>();
-
-        for (ScheduleProblem sol : lastResult.getSolutionAssignments()) {
-            Map<String, String> item = new HashMap<>();
-            item.put("aula", sol.getAula());
-            item.put("sala", sol.getSala());
-            assignments.add(item);
-        }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("assignments", assignments);
-        response.put("conflitos", lastResult.getConflitos());
-
-        return response;
-    }*/
-
-    /*@PostMapping("/solve")
-    public Map<String, Object> solveProblem() {
-        if (lastProblem == null) {
-            return Map.of("error", "Nenhum problema foi criado ainda.");
-        }
-
-        // Criar solução e avaliar
-        var solution = lastProblem.createSolution();
-        lastProblem.evaluate(solution);
-
-        List<Map<String, String>> assignments = new ArrayList<>();
-        assignments = lastProblem.getSolutionAssignments();
-        int conflitos = lastProblem.getSolutionConflitos();
-        return Map.of(
-                "Atribuições", assignments,
-                "objective", conflitos
-        );
-    }*/
 
     @PostMapping("/solve")
     public Map<String, Object> solveProblem() {
@@ -75,8 +56,7 @@ public class ScheduleController {
         }
 
         // Criar solução e avaliar
-        var solution = lastProblem.createSolution();
-        lastProblem.evaluate(solution);
+        var solution = runNSGAII(lastProblem);
 
         // Criar lista de atribuições
         List<Map<String, String>> assignments = new ArrayList<>();
@@ -106,6 +86,37 @@ public class ScheduleController {
                 "objective", conflitos
         );
     }
+
+    private IntegerSolution runNSGAII(ScheduleProblem problem) {
+
+        int populationSize = 100;
+        double crossoverProbability = 0.9;
+        double mutationProbability = 1.0 / problem.getAulas().size();
+        int maxEvaluations = 200;
+
+        CrossoverOperator<IntegerSolution> crossover =
+                new IntegerSBXCrossover(crossoverProbability, 20.0);
+
+        MutationOperator<IntegerSolution> mutation =
+                new IntegerPolynomialMutation(mutationProbability, 20.0);
+
+        NSGAII<IntegerSolution> nsga2 =
+                new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
+                        .setSelectionOperator(new BinaryTournamentSelection<>(
+                                new RankingAndCrowdingDistanceComparator<>()))
+                        .setMaxEvaluations(maxEvaluations)
+                        .build();
+
+        new AlgorithmRunner.Executor(nsga2).execute();
+
+        List<IntegerSolution> population = nsga2.result();
+
+        // Escolher a melhor solução (menor número de conflitos)
+        return population.stream()
+                .min(Comparator.comparingDouble(s -> s.objectives()[0]))
+                .orElseThrow();
+    }
+
 }
 
 
