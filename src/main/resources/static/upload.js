@@ -114,22 +114,6 @@ function addConstraint() {
     container.appendChild(div);
 }
 
-// Fazer resumo do json para o frontend
-function summarizeProblemJSON(problemJSON) {
-    // Clona o JSON original sem alterar o objeto real
-    const summary = { ...problemJSON };
-
-    // Amostrar até 2 elementos de cada dataset
-    if (summary.dataset?.salas) {
-        summary.dataset.salas = summary.dataset.salas.slice(0, 2);
-    }
-    if (summary.dataset?.horarios) {
-        summary.dataset.horarios = summary.dataset.horarios.slice(0, 2);
-    }
-
-    return summary;
-}
-
 // =============================================
 // 6) Submeter definição do problema ao backend
 // =============================================
@@ -171,9 +155,7 @@ function submitProblemDefinition() {
     };
 
     // Mostrar JSON no HTML
-    const summarizedJSON = summarizeProblemJSON(problemJSON);
-    document.getElementById("jsonOutput").textContent = JSON.stringify(summarizedJSON, null, 2);
-    //document.getElementById("jsonOutput").textContent = JSON.stringify(problemJSON, null, 2);
+    document.getElementById("jsonOutput").textContent = JSON.stringify(problemJSON, null, 2);
 
 
     // Enviar para backend
