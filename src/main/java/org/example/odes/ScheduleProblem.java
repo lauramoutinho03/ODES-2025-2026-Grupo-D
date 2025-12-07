@@ -26,9 +26,14 @@ public class ScheduleProblem extends AbstractIntegerProblem {
     private List<Map<String, String>> objectives;
     private List<String> constraints;
 
+    private double lastObjValue;
+    private double lastPenalty;
+    private int lastConstraintViolations;
+
     // parser SpEL
     private ExpressionParser parser = new SpelExpressionParser();
 
+    // Construtor 1
     public ScheduleProblem(List<Map<String, String>> aulas, List<Map<String, String>> salas, List<Map<String, String>> objectives,
                            List<String> constraints) {
         this.aulas = aulas;
@@ -106,40 +111,8 @@ public class ScheduleProblem extends AbstractIntegerProblem {
     @Override
     public IntegerSolution evaluate(IntegerSolution solution) {
 
-        double conflicts = 0;
-        //double objectiveSum = 0;
+        double objValue = 0;
         int constraintViolations = 0;
-
-//        // CONTAGEM DE CONFLITOS
-//        for (int i = 0; i < aulas.size(); i++) {
-//
-//            Map<String, String> aula1 = aulas.get(i);
-//            int salaIndex1 = solution.variables().get(i);
-//            Map<String, String> sala1 = salas.get(salaIndex1);
-//
-//            String salaNome1 = sala1.get("Nome_sala");
-//            String dia1 = aula1.get("Dia");
-//            LocalTime inicio1 = LocalTime.parse(aula1.get("Início"));
-//            LocalTime fim1 = LocalTime.parse(aula1.get("Fim"));
-//
-//            for (int j = i + 1; j < aulas.size(); j++) {
-//
-//                Map<String, String> aula2 = aulas.get(j);
-//                int salaIndex2 = solution.variables().get(j);
-//                Map<String, String> sala2 = salas.get(salaIndex2);
-//
-//                if (salaNome1.equals(sala2.get("Nome_sala")) &&
-//                        dia1.equals(aula2.get("Dia"))) {
-//
-//                    LocalTime inicio2 = LocalTime.parse(aula2.get("Início"));
-//                    LocalTime fim2 = LocalTime.parse(aula2.get("Fim"));
-//
-//                    if (inicio1.isBefore(fim2) && inicio2.isBefore(fim1)) {
-//                        conflicts++;
-//                    }
-//                }
-//            }
-//        }
 
         // FUNÇÕES OBJETIVO E RESTRIÇÕES
         for (int i = 0; i < aulas.size(); i++) {
@@ -158,9 +131,6 @@ public class ScheduleProblem extends AbstractIntegerProblem {
 
                 if (expr == null || expr.isBlank()) continue;
 
-                // Limpar nomes das variáveis para SpEL (remove espaços e acentos)
-                //expr = cleanExpression(expr);
-
                 Double value;
                 try {
                     value = parser.parseExpression(expr).getValue(context, Double.class);
@@ -174,15 +144,13 @@ public class ScheduleProblem extends AbstractIntegerProblem {
                     value = -value; // NSGA-II minimiza tudo
                 }
 
-                //objectiveSum += value;
-                conflicts += value;
+                objValue += value;
             }
 
             // ---- RESTRIÇÕES ----
             for (String cons : constraints) {
                 if (cons == null || cons.isBlank()) continue;
 
-                //cons = cleanExpression(cons);
                 Boolean ok;
                 try {
                     ok = parser.parseExpression(cons).getValue(context, Boolean.class);
@@ -195,22 +163,16 @@ public class ScheduleProblem extends AbstractIntegerProblem {
                 }
             }
         }
+        double penalty = constraintViolations * 100.0;
 
-        double penalty = constraintViolations * 1000.0;
+        this.lastObjValue = objValue;
+        this.lastPenalty = penalty;
+        this.lastConstraintViolations = constraintViolations;
 
-        solution.objectives()[0] =
-                conflicts      // conflitos
-                        //+ objectiveSum // expressões do utilizador
-                        + penalty;     // restrições violadas
+        solution.objectives()[0] = objValue + penalty; // valor do objetivo + restrições violadas
 
         return solution;
     }
-
-//    // Remove espaços, acentos e caracteres inválidos para SpEL
-//    private String cleanExpression(String expr) {
-//        if (expr == null) return "";
-//        return expr.replaceAll("[^A-Za-z0-9()+\\-*/.<>=]", "");
-//    }
 
     // Construir contexto para SpEL
     private StandardEvaluationContext buildContext(Map<String, String> aula,
@@ -227,33 +189,38 @@ public class ScheduleProblem extends AbstractIntegerProblem {
 
         // Aula
         for (var entry : aula.entrySet()) {
-            //String key = cleanVarName(entry.getKey());
-            context.setVariable(entry.getKey(), parseNumberOrDouble(entry.getValue()));
+            context.setVariable(entry.getKey(), parseValue(entry.getValue()));
         }
 
         // Sala
         for (var entry : sala.entrySet()) {
-            //String key = cleanVarName(entry.getKey());
-            context.setVariable(entry.getKey(), parseNumberOrDouble(entry.getValue()));
+            context.setVariable(entry.getKey(), parseValue(entry.getValue()));
         }
 
         return context;
     }
 
-//    // Limpa nomes de colunas para variáveis válidas
-//    private String cleanVarName(String s) {
-//        if (s == null) return "";
-//        return s.replaceAll("[^A-Za-z0-9]", "");
-//    }
+    private Object parseValue(String v) {
+        if (v == null || v.isBlank()) return null;
 
-    // Converte valores para Double
-    private Double parseNumberOrDouble(String v) {
-        if (v == null) return 0.0;
         try {
             return Double.parseDouble(v.replace(",", "."));
-        } catch (NumberFormatException e) {
-            return 0.0;
-        }
+        } catch (Exception ignored) {}
+
+        if (v.equalsIgnoreCase("VERDADEIRO") || v.equalsIgnoreCase("TRUE") || v.equalsIgnoreCase("X"))
+            return true;
+        if (v.equalsIgnoreCase("FALSO") || v.equalsIgnoreCase("FALSE"))
+            return false;
+
+        try {
+            return java.time.LocalTime.parse(v);
+        } catch (Exception ignored) {}
+
+        try {
+            return java.time.LocalDate.parse(v, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } catch (Exception ignored) {}
+
+        return v;
     }
 
 
@@ -276,5 +243,17 @@ public class ScheduleProblem extends AbstractIntegerProblem {
 
     public List<Map<String, String>> getSalas() {
         return salas;
+    }
+
+    public double getLastObjValue() {
+        return lastObjValue;
+    }
+
+    public double getLastPenalty() {
+        return lastPenalty;
+    }
+
+    public int getLastConstraintViolations() {
+        return lastConstraintViolations;
     }
 }

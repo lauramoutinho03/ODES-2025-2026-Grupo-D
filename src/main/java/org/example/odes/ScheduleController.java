@@ -69,21 +69,24 @@ public class ScheduleController {
             Map<String, String> sala = salas.get(salaIndex);
 
             Map<String, String> item = new HashMap<>();
-            item.put("aula", aula.get("Unidade de execução")); // garante que a chave seja "Aula"
+            item.put("aula", aula.get("Unidade_de_execucao")); // garante que a chave seja "Aula"
             item.put("sala", sala.get("Nome_sala"));
             assignments.add(item);
         }
 
-        // Contar conflitos
-        int conflitos = (int) solution.objectives()[0];
+        // Score do Evaluate
+        int score = (int) solution.objectives()[0];
 
         // Guardar no problema (opcional)
-        lastProblem.setSolution(assignments, conflitos);
+        lastProblem.setSolution(assignments, score);
 
         // Devolver JSON para frontend
         return Map.of(
                 "Atribuições", assignments,
-                "objective", conflitos
+                "score", score,
+                "objValue", lastProblem.getLastObjValue(),
+                "penalty", lastProblem.getLastPenalty(),
+                "numPenal", lastProblem.getLastConstraintViolations()
         );
     }
 

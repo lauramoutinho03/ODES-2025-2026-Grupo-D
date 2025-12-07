@@ -218,9 +218,26 @@ function solveProblem() {
                 resizableRows: false
             });
 
-            const conflictsP = document.createElement("p");
-            conflictsP.innerHTML = `<strong>Número de conflitos:</strong> ${data.objective || data.conflitos || 0}`;
-            resultsDiv.appendChild(conflictsP);
+            // Número de conflitos (score)
+            const scoreP = document.createElement("p");
+            scoreP.innerHTML = `<strong>Score total (objetivo + penalidade):</strong> ${data.score || 0}`;
+            resultsDiv.appendChild(scoreP);
+
+            // Valor do objetivo puro (objValue)
+            const objValueP = document.createElement("p");
+            objValueP.innerHTML = `<strong>Valor do objetivo (objValue):</strong> ${data.objValue || 0}`;
+            resultsDiv.appendChild(objValueP);
+
+            // Penalidade aplicada (penalty)
+            const penaltyP = document.createElement("p");
+            penaltyP.innerHTML = `<strong>Penalidade aplicada (penalty):</strong> ${data.penalty || 0}`;
+            resultsDiv.appendChild(penaltyP);
+
+            // Número de penalizações (numPenal)
+            const numPenalP = document.createElement("p");
+            numPenalP.innerHTML = `<strong>Número de restrições violadas:</strong> ${data.numPenal || 0}`;
+            resultsDiv.appendChild(numPenalP);
+
         })
         .catch(err => {
             document.getElementById("loading").style.display = "none";
