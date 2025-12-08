@@ -13,7 +13,7 @@
 
 </head>
 <body>
-<h1>Plataforma ODES - Upload e Definição de Problema</h1>
+<h1>Plataforma ODES</h1>
 
 <section>
     <h2>Carregar ficheiros CSV</h2>
@@ -45,7 +45,7 @@
     </div>
 </section>
 
-<section>
+<!--<section>
     <h2>Variáveis de decisão</h2>
     <div id="decisionVars" class="space-y-3">
         <div>
@@ -58,8 +58,7 @@
         </div>
     </div>
     <button onclick="addDecisionVar()">+ Adicionar variável</button>
-</section>
-
+</section>-->
 
 <section>
     <h2>Funções Objetivo</h2>
@@ -69,7 +68,7 @@
                 <option>Minimizar</option>
                 <option>Maximizar</option>
             </select>
-            <input type="text" placeholder="Expressão (ex: abs(lotacao - inscritos))" style="width: 500px;">
+            <input type="text" placeholder="Expressão (Ex: #abs(#Lotacao - #Inscritos_no_turno))" style="width: 500px;">
         </div>
     </div>
     <button onclick="addObjective()">+ Adicionar objetivo</button>
@@ -79,7 +78,7 @@
     <h2>Restrições</h2>
     <div id="constraints" class="space-y-3">
         <div>
-            <input type="text" placeholder="Restrição (ex: lotacao >= inscritos)" style="width: 500px;">
+            <input type="text" placeholder="Restrição (Ex: #Lotacao >= #Inscritos_no_turno)" style="width: 500px;">
         </div>
     </div>
     <button onclick="addConstraint()">+ Adicionar restrição</button>
@@ -101,9 +100,7 @@
         <div class="spinner"></div>
         <p>A processar solução... Por favor, aguarde.</p>
     </div>
-
 </section>
-
 
 </body>
 </html>

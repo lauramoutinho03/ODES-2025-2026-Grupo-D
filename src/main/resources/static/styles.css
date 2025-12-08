@@ -48,10 +48,6 @@ input, select {
     border-radius: 6px;
 }
 
-#tabSalas, #tabHor {
-    /*margin-top: 10px;*/
-}
-
 .spinner {
     margin: 0 auto;
     border: 6px solid #ddd;

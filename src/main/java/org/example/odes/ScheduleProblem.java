@@ -9,7 +9,6 @@ import org.uma.jmetal.solution.integersolution.impl.DefaultIntegerSolution;
 import org.uma.jmetal.util.bounds.Bounds;
 import org.uma.jmetal.util.errorchecking.Check;
 
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,23 +39,6 @@ public class ScheduleProblem extends AbstractIntegerProblem {
         this.salas = salas;
         this.objectives = objectives != null ? objectives : List.of();
         this.constraints = constraints != null ? constraints : List.of();
-
-        // Cada variável representa a sala atribuída à aula i
-        // bounds: 0..salas.size()-1
-        List<Integer> lower = new ArrayList<>();
-        List<Integer> upper = new ArrayList<>();
-
-        for (int i = 0; i < aulas.size(); i++) {
-            lower.add(0);
-            upper.add(salas.size() - 1);
-        }
-        setVariableBounds(lower, upper);
-    }
-
-    // Construtor 2 para ScheduleMain2
-    public ScheduleProblem(List<Map<String, String>> aulas, List<Map<String, String>> salas) {
-        this.aulas = aulas;
-        this.salas = salas;
 
         // Cada variável representa a sala atribuída à aula i
         // bounds: 0..salas.size()-1
@@ -114,7 +96,7 @@ public class ScheduleProblem extends AbstractIntegerProblem {
         double objValue = 0;
         int constraintViolations = 0;
 
-        // FUNÇÕES OBJETIVO E RESTRIÇÕES
+        // Função objetivo e restrições
         for (int i = 0; i < aulas.size(); i++) {
 
             Map<String, String> aula = aulas.get(i);
@@ -124,10 +106,10 @@ public class ScheduleProblem extends AbstractIntegerProblem {
             // Construir contexto SpEL com variáveis da aula+sala
             StandardEvaluationContext context = buildContext(aula, sala);
 
-            // ---- FUNÇÕES OBJETIVO ----
+            // Função objetivo
             for (Map<String, String> obj : objectives) {
                 String expr = obj.get("expression");
-                String sense = obj.get("sense"); // minimizar / maximizar
+                String sense = obj.get("sense"); // minimizar ou maximizar
 
                 if (expr == null || expr.isBlank()) continue;
 
@@ -147,7 +129,7 @@ public class ScheduleProblem extends AbstractIntegerProblem {
                 objValue += value;
             }
 
-            // ---- RESTRIÇÕES ----
+            // Restrição
             for (String cons : constraints) {
                 if (cons == null || cons.isBlank()) continue;
 

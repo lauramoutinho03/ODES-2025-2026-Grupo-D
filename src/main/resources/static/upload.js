@@ -4,9 +4,7 @@ let csvHorarios = [];
 let tableSalas;
 let tableHorarios;
 
-// =====================
-// 1) Upload de ficheiros CSV
-// =====================
+// Upload de ficheiros CSV
 function uploadTwoFiles() {
     const fileSalas = document.getElementById("salas").files[0];
     const fileHor = document.getElementById("horarios").files[0];
@@ -35,9 +33,7 @@ function uploadTwoFiles() {
     });
 }
 
-// =====================
-// 2) Função genérica para criar tabela Tabulator
-// =====================
+// Função para criar tabela Tabulator
 function renderTabulator(divId, data, tableInstance, assignFunc) {
     if (!data || data.length === 0) return;
 
@@ -59,13 +55,10 @@ function renderTabulator(divId, data, tableInstance, assignFunc) {
         placeholder: "Sem dados",
         responsiveLayout: false,
     });
-
     assignFunc(table);
 }
 
-// ==========================
-// 3) Variáveis de decisão
-// ==========================
+// Variáveis de decisão
 function addDecisionVar() {
     const container = document.getElementById("decisionVars");
 
@@ -82,9 +75,7 @@ function addDecisionVar() {
     container.appendChild(div);
 }
 
-// ==========================
-// 4) Objetivos
-// ==========================
+// Função objetivo
 function addObjective() {
     const container = document.getElementById("objectives");
 
@@ -100,9 +91,7 @@ function addObjective() {
     container.appendChild(div);
 }
 
-// ==========================
-// 5) Restrições
-// ==========================
+// Restrição
 function addConstraint() {
     const container = document.getElementById("constraints");
 
@@ -114,22 +103,19 @@ function addConstraint() {
     container.appendChild(div);
 }
 
-// =============================================
-// 6) Submeter definição do problema ao backend
-// =============================================
+// Submeter definição do problema ao backend
 function submitProblemDefinition() {
     // Variáveis de decisão
-    //debugger
-    const decisionVars = [...document.querySelectorAll("#decisionVars div")].map(div => {
+/*    const decisionVars = [...document.querySelectorAll("#decisionVars div")].map(div => {
         const [labelInput, typeSelect, rangeInput ] = div.children;
         return {
             label: labelInput.value,
             type: typeSelect.value,
             range: rangeInput.value
         };
-    });
+    });*/
 
-    // Objetivos
+    // Função objetivo
     const objectives = [...document.querySelectorAll("#objectives div")].map(div => {
         const [optSelect, exprInput] = div.children;
         return {
@@ -138,7 +124,7 @@ function submitProblemDefinition() {
         };
     });
 
-    // Restrições
+    // Restrição
     const constraints = [...document.querySelectorAll("#constraints div input")].map(i => i.value);
 
     // Montar JSON final
@@ -149,14 +135,13 @@ function submitProblemDefinition() {
             salas: csvSalas,
             horarios: csvHorarios
         },
-        decision_variables: decisionVars,
+        //decision_variables: decisionVars,
         objectives: objectives,
         constraints: constraints
     };
 
     // Mostrar JSON no HTML
     document.getElementById("jsonOutput").textContent = JSON.stringify(problemJSON, null, 2);
-
 
     // Enviar para backend
     fetch("http://localhost:8080/problem", {
@@ -170,8 +155,6 @@ function submitProblemDefinition() {
         })
         .then(data => alert("Problema criado com sucesso no backend!"))
         .catch(err => alert("Erro: " + err));
-
-
 }
 
 function solveProblem() {
@@ -218,7 +201,7 @@ function solveProblem() {
                 resizableRows: false
             });
 
-            // Número de conflitos (score)
+            // Score total (score)
             const scoreP = document.createElement("p");
             scoreP.innerHTML = `<strong>Score total (objetivo + penalidade):</strong> ${data.score || 0}`;
             resultsDiv.appendChild(scoreP);
@@ -244,5 +227,3 @@ function solveProblem() {
             alert("Erro: " + err);
         });
 }
-
-

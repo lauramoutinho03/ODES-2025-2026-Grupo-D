@@ -15,7 +15,7 @@ import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import java.util.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:63342") // OU remove se não for preciso
+@CrossOrigin(origins = "http://localhost:63342")
 public class ScheduleController {
 
     private ScheduleProblem lastProblem;
@@ -37,7 +37,7 @@ public class ScheduleController {
         List<String> constraints =
                 (List<String>) json.get("constraints");
 
-        // Criar o ScheduleProblem com o mínimo que ele precisa: aulas + salas
+        // Criar o ScheduleProblem
         lastProblem = new ScheduleProblem(horarios, salas, objectives, constraints);
 
         return Map.of(
@@ -69,7 +69,7 @@ public class ScheduleController {
             Map<String, String> sala = salas.get(salaIndex);
 
             Map<String, String> item = new HashMap<>();
-            item.put("aula", aula.get("Unidade_de_execucao")); // garante que a chave seja "Aula"
+            item.put("aula", aula.get("Unidade_de_execucao"));
             item.put("sala", sala.get("Nome_sala"));
             assignments.add(item);
         }
@@ -77,7 +77,7 @@ public class ScheduleController {
         // Score do Evaluate
         int score = (int) solution.objectives()[0];
 
-        // Guardar no problema (opcional)
+        // Guardar no problema
         lastProblem.setSolution(assignments, score);
 
         // Devolver JSON para frontend
@@ -114,7 +114,7 @@ public class ScheduleController {
 
         List<IntegerSolution> population = nsga2.result();
 
-        // Escolher a melhor solução (menor número de conflitos)
+        // Escolher a melhor solução
         return population.stream()
                 .min(Comparator.comparingDouble(s -> s.objectives()[0]))
                 .orElseThrow();
